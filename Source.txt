@@ -1,0 +1,87 @@
+
+
+#include <iostream>
+#include <stdio.h>
+#include <string>
+
+
+
+using namespace std;
+
+
+
+
+char in_path[30];
+char out_path[35];
+
+void split_path() {
+	int pos=-1;
+	int i = 0;
+
+	while (*(in_path + i) != '\0') {
+		if (*(in_path + i) == '\\' || *(in_path + i) == '/') {
+			pos = i;
+		}
+		i++;
+	}
+
+	for (int j = 0; j <= pos; j++) {
+		out_path[j] = in_path[j];
+	}
+
+	out_path[pos + 1] = 'D';
+	out_path[pos + 2] = 'o';
+	out_path[pos + 3] = 'w';
+	out_path[pos + 4] = 'n';
+	out_path[pos + 5] = '_';
+
+	for (int j = pos + 6; j < pos + 6 + (i - pos); j++) {
+		out_path[j] = in_path[j - 5];
+	}
+}
+
+int main() {
+
+
+	FILE *sourceFile;
+	FILE *targetFile;
+
+	int size = 0;
+	int flag = 0;
+	short sourceRead = 0;
+	short tempRead = 0;
+	int in_speed;
+	int out_speed;
+	int factor;
+
+	cout << "Enter the path of the source PCM file: " << endl;
+ 	scanf("%s",in_path);
+	cout << "Enter the original frequency: " << endl;
+	cin >> in_speed;
+	cout << "Enter the target frequency: " << endl;
+	cin >> out_speed;
+
+	factor = int(in_speed / out_speed);
+	split_path();
+
+	sourceFile = fopen(in_path, "rb+");
+	targetFile = fopen(out_path, "wb+");
+
+	while (!feof(sourceFile)) {
+		size = fread(&sourceRead, 2, 1, sourceFile);
+		if (size > 0) {
+			tempRead = tempRead + sourceRead;
+			flag++;
+			if (flag == factor) {
+				flag = 0;
+				tempRead = tempRead / factor;
+				fwrite(&tempRead, 2, 1, targetFile);
+				tempRead = 0;
+			}
+		}
+	}
+
+	fclose(sourceFile);
+	fclose(targetFile);
+	system("pause");
+}
